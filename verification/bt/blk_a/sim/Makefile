@@ -1,4 +1,6 @@
 
+.PHONY:cmp batch_run ncrun run ${UVM_TEST_SIMV} 
+
 ifneq ($(wildcard ../cfg/cfg.mk),)
     include ../cfg/cfg.mk
 endif
@@ -28,13 +30,14 @@ ifeq (${wave},fsdb)
     export DEBUG_CMP_OPTS := -debug_access+all
     export DEBUG_RUN_OPTS := +fsdbfile+${mode}/wave/${tc}.fsdb \
 							 -ucli -do ../tc/wave_fsdb.do \
-							 +UVM_VERDI_TRACE=HIER
+							 
 endif
 
 ifeq (${gui},dve)
-    export GUI_RUN_OPTS := -gui=dve
-else
-    export GUI_RUN_OPTS := -gui=verdi
+    export GUI_RUN_OPTS := -gui=dve +UVM_VERDI_TRACE=HIER
+endif
+ifeq (${gui},verdi)
+    export GUI_RUN_OPTS := -gui=verdi +UVM_VERDI_TRACE=HIER
 endif
 
 export COM_CMP_OPTS := ${TIME_SCALE} ${USER_CMP_OPTS} ${DEBUG_CMP_OPTS}
@@ -61,7 +64,9 @@ make_dir:
 	@mkdir -p ${mode}/cov
 	@mkdir -p ${mode}/verdi
 
-cmp: make_dir ${UVM_TEST_SIMV}
+cmp: make_dir
+	@vcs ${COM_CMP_OPTS} ${UVM_CMP_OPTS} ${udl} \
+	 -o ${mode}/exec/uvm_test_simv -Mdir=${mode}/exec/uvm_test_csrc -l ${mode}/log/uvm_test.cmp_log
 batch_run: make_dir ${UVM_TEST_SIMV}
 	@${mode}/exec/uvm_test_simv ${COM_RUN_OPTS} ${UVM_RUN_OPTS} -l ${mode}/log/${tc}.log 
 
@@ -70,9 +75,10 @@ ncrun: batch_run
 ${UVM_TEST_SIMV}:
 	@vcs ${COM_CMP_OPTS} ${UVM_CMP_OPTS} ${udl} \
 	 -o ${mode}/exec/uvm_test_simv -Mdir=${mode}/exec/uvm_test_csrc -l ${mode}/log/uvm_test.cmp_log
+	
 
 verdi:
-	@verdi -nologo -simflow -simBin ${mode}/exec/uvm_test_simv -logdir ${mode}/verdi/verdi.log
+	@verdi -nologo -simflow -simBin ${mode}/exec/uvm_test_simv -logdir ${mode}/verdi
 
 run:cmp batch_run
 
