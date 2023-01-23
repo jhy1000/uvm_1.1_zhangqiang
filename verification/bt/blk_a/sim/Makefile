@@ -27,11 +27,19 @@ endif
 ifeq (${wave},fsdb)
     export DEBUG_CMP_OPTS := -debug_access+all
     export DEBUG_RUN_OPTS := +fsdbfile+${mode}/wave/${tc}.fsdb \
-							 -ucli -do ../tc/wave_fsdb.do
+							 -ucli -do ../tc/wave_fsdb.do \
+							 +UVM_VERDI_TRACE=HIER
+endif
+
+ifeq (${gui},dve)
+    export GUI_RUN_OPTS := -gui=dve
+else
+    export GUI_RUN_OPTS := -gui=verdi
 endif
 
 export COM_CMP_OPTS := ${TIME_SCALE} ${USER_CMP_OPTS} ${DEBUG_CMP_OPTS}
-export COM_RUN_OPTS := ${USER_RUN_OPTS} ${DEBUG_RUN_OPTS}
+export COM_RUN_OPTS := ${USER_RUN_OPTS} ${DEBUG_RUN_OPTS} ${GUI_RUN_OPTS}
+export UVM_TEST_SIMV := ${mode}/exec/uvm_test_simv
 
 create_env_dir:
 	@mkdir -p rtl 
